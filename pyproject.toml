@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pharmacy-assistant"
+version = "0.1.0"
+description = "Phase 1 inventory and medicine retrieval foundation"
+requires-python = ">=3.10"
+dependencies = [
+    "opencv-python>=4.8",
+    "pytesseract>=0.3.10",
+]
+
+[project.scripts]
+pharmacy-assistant = "pharmacy_assistant.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
