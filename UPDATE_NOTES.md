@@ -1,5 +1,15 @@
 # Pharmacy Assistant Update Notes
 
+## Printed medicine-name OCR evaluation scaffold
+
+- Added instructions and an empty manifest for collecting real, provenance-
+  documented OCR evaluation photos with verified `.gt.txt` labels.
+- No evaluation images are present yet. Baseline measurements and optional
+  user-words, preprocessing, and page-segmentation experiments are deferred
+  until labeled photos are supplied.
+- No OCR behavior or medicine-matching rules were changed; defaults remain
+  unchanged and scanning remains review-only.
+
 ## Prescription OCR and webcam scanning
 
 - Improved OpenCV preprocessing with grayscale conversion, upscaling for small

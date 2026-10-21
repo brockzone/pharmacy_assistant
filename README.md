@@ -25,6 +25,10 @@ src/pharmacy_assistant/
 tests/
   test_phase1.py  Automated Phase 1 tests
   test_phase2.py  Prescription scanning and OCR tests
+training/
+  README.md       OCR evaluation data and labeling instructions
+  manifest.csv   Source-photo provenance and split manifest
+  evaluation/    Held-out real photographs and matching .gt.txt labels
 ```
 
 ## Install
@@ -86,6 +90,20 @@ then ranks the results using legibility and exact catalog evidence. The
 displayed selection score is a ranking score,
 not a probability or guarantee of OCR correctness. Exact matching and manual
 review requirements are unchanged.
+
+### Printed medicine-name OCR evaluation
+
+The OCR evaluation scaffold and instructions are in
+[training/README.md](training/README.md).
+Place held-out real photographs and matching `.gt.txt` ground-truth files in
+`training/evaluation/`, and record each physical source photo in
+`training/manifest.csv`. Keep photographs, crops, and derived variants from one
+physical source together in the same split. Do not use held-out evaluation
+photos to tune OCR options. The evaluation script and baseline/optional
+experiment comparisons will be added after labeled photos are supplied.
+
+No custom OCR options are enabled by default. Evaluation experiments must remain
+opt-in and must not change strict medicine matching or review-only behavior.
 
 To save the captured image, selected preprocessed image, and text/configuration
 from each OCR attempt for troubleshooting, pass `--debug-dir`:
