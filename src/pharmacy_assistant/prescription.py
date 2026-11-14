@@ -284,22 +284,55 @@ def recognize_text_details(
     image,
     matcher: MedicineMatcher | None = None,
     debug_dir: str | Path | None = None,
+    ocr_model: str | None = None,
 ) -> OCRAttempt:
     """Try a few suitable page modes and thresholding variants, selecting by score."""
     variants = preprocess_image(image)
-    recipes = (
-        ("original", 7),
-        ("grayscale", 7),
-        ("otsu", 7),
-        ("adaptive", 7),
-        ("grayscale", 6),
-        ("grayscale", 11),
-    )
+    if ocr_model:
+        # Resolve path to custom traineddata if relative or given as model name
+        model_path = Path(ocr_model)
+        if not model_path.is_file():
+            # Check training directory
+            candidate_path = Path("training") / f"{ocr_model}.traineddata"
+            if candidate_path.is_file():
+                tessdata_dir = str(candidate_path.parent.resolve())
+                lang = candidate_path.stem
+            else:
+                tessdata_dir = str(model_path.parent.resolve())
+                lang = model_path.stem
+        else:
+            tessdata_dir = str(model_path.parent.resolve())
+            lang = model_path.stem
+
+        base_config = f"--tessdata-dir {tessdata_dir} -l {lang} --oem 1"
+        recipes = (
+            ("original", 3),
+            ("grayscale", 3),
+            ("otsu", 3),
+            ("adaptive", 3),
+            ("original", 7),
+            ("grayscale", 7),
+            ("otsu", 7),
+            ("adaptive", 7),
+            ("grayscale", 6),
+            ("grayscale", 11),
+        )
+    else:
+        base_config = "--oem 3"
+        recipes = (
+            ("original", 7),
+            ("grayscale", 7),
+            ("otsu", 7),
+            ("adaptive", 7),
+            ("grayscale", 6),
+            ("grayscale", 11),
+        )
+
     attempts: list[OCRAttempt] = []
     errors: list[Exception] = []
     try:
         for variant_name, page_mode in recipes:
-            config = f"--oem 3 --psm {page_mode}"
+            config = f"{base_config} --psm {page_mode}"
             try:
                 text = pytesseract.image_to_string(
                     variants[variant_name], config=config
@@ -333,9 +366,13 @@ def recognize_text_details(
     return selected
 
 
-def recognize_text(image, matcher: MedicineMatcher | None = None) -> str:
+def recognize_text(
+    image,
+    matcher: MedicineMatcher | None = None,
+    ocr_model: str | None = None,
+) -> str:
     """Run configured OCR alternatives and return the best-ranked text."""
-    return recognize_text_details(image, matcher).text
+    return recognize_text_details(image, matcher, ocr_model=ocr_model).text
 
 
 def _clean_name(text: str) -> str | None:
@@ -524,9 +561,10 @@ def scan_image_array(
     matcher: MedicineMatcher,
     repository: MedicineRepository,
     debug_dir: str | Path | None = None,
+    ocr_model: str | None = None,
 ) -> PrescriptionScanResult:
     """OCR an in-memory image and compare candidates with the existing catalog."""
-    ocr = recognize_text_details(image, matcher, debug_dir)
+    ocr = recognize_text_details(image, matcher, debug_dir, ocr_model=ocr_model)
     raw_text = ocr.text
     parsed = parse_prescription_text(raw_text, matcher)
     return PrescriptionScanResult(
@@ -543,10 +581,11 @@ def scan_image(
     matcher: MedicineMatcher,
     repository: MedicineRepository,
     debug_dir: str | Path | None = None,
+    ocr_model: str | None = None,
 ) -> PrescriptionScanResult:
     """Validate and scan a JPG, JPEG, or PNG prescription image."""
     return scan_image_array(
-        load_valid_image(image_path), matcher, repository, debug_dir
+        load_valid_image(image_path), matcher, repository, debug_dir, ocr_model=ocr_model
     )
 
 

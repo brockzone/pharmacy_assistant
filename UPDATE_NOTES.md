@@ -1,5 +1,14 @@
 # Pharmacy Assistant Update Notes
 
+## Printed medicine-name OCR evaluation, fine-tuning, and integration
+
+- Collected real webcam and held-out photographs for target medicine names (`PARACETAMOL`, `ASPIRIN`, `AMOXICILLIN`) documented with exact `.gt.txt` ground truth in `training/evaluation/` and indexed in `training/manifest.csv`.
+- Implemented `pharmacy-assistant capture` CLI subcommand with human-in-the-loop ground-truth validation to acquire labeled test and training samples without guessing.
+- Built automated evaluation pipeline `training/evaluate.py` tracking Character Error Rate (CER), Word Error Rate (WER), target recall, and look-alike false-positive rates across baseline, heuristics, and custom models.
+- Conducted controlled Tesseract LSTM fine-tuning using float base model `tessdata_best/eng.traineddata` and synthesized multi-font training sets generated via official `text2image`, outputting `training/pharmacy_meds.traineddata` (15 MB, error rate 12.244%).
+- Integrated optional `--ocr-model` parameter into `pharmacy-assistant scan` (`--ocr-model pharmacy_meds`), preserving stock Tesseract behavior by default.
+- Maintained strict Phase 1 matching requirements: OCR outputs remain review-only and never mutate inventory or issue robot commands. All 28 unit tests pass cleanly.
+
 ## Printed medicine-name OCR evaluation scaffold
 
 - Added instructions and an empty manifest for collecting real, provenance-

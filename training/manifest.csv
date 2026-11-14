@@ -1,1 +1,21 @@
 source_photo_id,image_file,ground_truth_file,split,class,conditions,license_origin
+whatsapp_photo_amox,evaluation/sample001.png,evaluation/sample001.gt.txt,test,AMOXICILLIN,"real_photo, vertical_card, good_light",user_download_photo
+whatsapp_photo_asp,evaluation/sample002.png,evaluation/sample002.gt.txt,test,ASPIRIN,"real_photo, vertical_card, good_light",user_download_photo
+whatsapp_photo_para,evaluation/sample003.png,evaluation/sample003.gt.txt,test,PARACETAMOL,"real_photo, vertical_card, handheld",user_download_photo
+1,evaluation/sample004.png,evaluation/sample004.gt.txt,test,PARACETAMOL,NAH,NAH
+1,evaluation/sample005.png,evaluation/sample005.gt.txt,test,PARACETAMOL,NAH,NAH
+1,evaluation/sample006.png,evaluation/sample006.gt.txt,test,PARACETAMOL,NAH,NAH
+1,evaluation/sample007.png,evaluation/sample007.gt.txt,test,PARACETAMOL,NAH,NAH
+1,evaluation/sample008.png,evaluation/sample008.gt.txt,test,PARACETAMOL,NAH,NAH
+2,evaluation/sample009.png,evaluation/sample009.gt.txt,test,ASPIRIN,NAH,NAH
+auto-id,evaluation/sample010.png,evaluation/sample010.gt.txt,test,ASPIRIN,NAH,nah
+auto-id,evaluation/sample011.png,evaluation/sample011.gt.txt,test,ASPIRIN,NAH,nah
+auto-id,evaluation/sample012.png,evaluation/sample012.gt.txt,test,ASPIRIN,NAH,nah
+auto-id,evaluation/sample013.png,evaluation/sample013.gt.txt,test,ASPIRIN,NAH,nah
+auto-id,evaluation/sample014.png,evaluation/sample014.gt.txt,test,ASPIRIN,NAH,nah
+auto-id,evaluation/sample015.png,evaluation/sample015.gt.txt,test,AMOXCILLIN,NAH,nah
+auto-id,evaluation/sample016.png,evaluation/sample016.gt.txt,test,AMOXCILLIN,NAH,nah
+auto-id,evaluation/sample017.png,evaluation/sample017.gt.txt,test,AMOXCILLIN,NAH,naah
+auto-id,evaluation/sample018.png,evaluation/sample018.gt.txt,test,AMOXCILLIN,NAH,nah
+auto-id,evaluation/sample019.png,evaluation/sample019.gt.txt,test,AMOXCILLIN,NAH,nah
+auto-id,evaluation/sample020.png,evaluation/sample020.gt.txt,test,AMOXCILLIN,NAH,nah

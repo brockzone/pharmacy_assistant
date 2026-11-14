@@ -5,3 +5,12 @@ __pycache__/
 *.db
 *.sqlite
 *.sqlite3
+ocr-debug/
+training/checkpoints/
+training/tessdata_best/
+training/tesstrain/
+training/train/
+training/val/
+training/train_list.txt
+training/val_list.txt
+*.traineddata

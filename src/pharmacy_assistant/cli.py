@@ -52,21 +52,60 @@ def _parser() -> argparse.ArgumentParser:
         "--debug-dir",
         help="optionally save captured/preprocessed images and OCR attempts",
     )
+    scan_parser.add_argument(
+        "--ocr-model",
+        help="optional custom traineddata model name or path (e.g. pharmacy_meds)",
+    )
+
+    capture_parser = subparsers.add_parser(
+        "capture", help="capture a photograph and enter exact ground-truth label"
+    )
+    capture_source = capture_parser.add_mutually_exclusive_group()
+    capture_source.add_argument(
+        "--camera",
+        type=int,
+        default=0,
+        metavar="INDEX",
+        help="webcam index (default: 0)",
+    )
+    capture_source.add_argument(
+        "--image", help="existing image file to label instead of camera capture"
+    )
+    capture_parser.add_argument(
+        "--split",
+        choices=["test", "train", "val"],
+        default="test",
+        help="dataset split (default: test)",
+    )
+    capture_parser.add_argument(
+        "--source-id",
+        help="physical source photo ID (for grouping crops/variants)",
+    )
+    capture_parser.add_argument(
+        "--training-dir",
+        default="training",
+        help="path to training directory (default: training)",
+    )
     return parser
 
 
 def _print_scan_report(result: "PrescriptionScanResult") -> None:
+    print("=== Prescription OCR Scan ===")
+    print()
     print("Raw OCR text:")
     print("---")
     print(result.raw_text or "(No text was recognized.)")
     print("---")
+    print()
+
     if result.ocr_configuration is not None:
         print(f"Selected OCR configuration: {result.ocr_configuration}")
         if result.ocr_score is not None:
             print(
-                "OCR selection score (not a confidence probability): "
+                f"OCR selection score (not a confidence probability): "
                 f"{result.ocr_score:.2f}"
             )
+        print()
 
     if not result.items:
         print("Medicine candidates: none")
@@ -78,7 +117,7 @@ def _print_scan_report(result: "PrescriptionScanResult") -> None:
         print(f"  Database match status: {item.database_status}")
         if item.medicine is not None:
             print(
-                "  Matched medicine: "
+                f"  Matched medicine: "
                 f"{item.medicine.generic_name} {item.medicine.strength} "
                 f"{item.medicine.dosage_form}"
             )
@@ -92,11 +131,14 @@ def _print_scan_report(result: "PrescriptionScanResult") -> None:
             print("  Fields requiring human review: none")
         if item.database_status == "not_found":
             print("  No confident database match was found.")
+        print()
 
     if result.unparsed_lines:
         print("Unparsed lines requiring human review:")
         for line in result.unparsed_lines:
             print(f"  - {line}")
+        print()
+
     if not result.items:
         print("No confident medicine match was found; human review is required.")
     if not result.raw_text.strip():
@@ -131,6 +173,7 @@ def _scan(args: argparse.Namespace) -> int:
                     matcher,
                     repository,
                     debug_dir=args.debug_dir,
+                    ocr_model=args.ocr_model,
                 )
             else:
                 image = capture_webcam_image(args.camera)
@@ -139,6 +182,7 @@ def _scan(args: argparse.Namespace) -> int:
                     matcher,
                     repository,
                     debug_dir=args.debug_dir,
+                    ocr_model=args.ocr_model,
                 )
     except CameraCaptureCancelled as error:
         print(error)
@@ -163,6 +207,18 @@ def main() -> None:
 
     if args.command == "scan":
         raise SystemExit(_scan(args))
+
+    if args.command == "capture":
+        from pharmacy_assistant.capture import capture_and_label_interactive
+
+        capture_and_label_interactive(
+            camera_index=args.camera,
+            image_path=args.image,
+            split=args.split,
+            source_photo_id=args.source_id,
+            training_root=args.training_dir,
+        )
+        return
 
     with sqlite3.connect(args.db) as connection:
         connection.row_factory = sqlite3.Row

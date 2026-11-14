@@ -65,6 +65,12 @@ Scan an image file (JPG, JPEG, or PNG):
 pharmacy-assistant scan --image /path/to/prescription.png --db pharmacy.db
 ```
 
+Optionally pass `--ocr-model` to use a fine-tuned model (e.g. `pharmacy_meds`):
+
+```bash
+pharmacy-assistant scan --image /path/to/prescription.png --db pharmacy.db --ocr-model pharmacy_meds
+```
+
 Open a live webcam preview and scan a medicine name from paper:
 
 ```bash
