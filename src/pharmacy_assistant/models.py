@@ -5,12 +5,25 @@ from enum import Enum
 
 
 @dataclass(frozen=True)
+class MedicineReference:
+    generic_name: str
+    common_uses: str
+    important_notes: str
+    information_source: str
+    information_reviewed: str
+
+
+@dataclass(frozen=True)
 class Medicine:
     id: int
     generic_name: str
     brand_name: str | None
     strength: str
     dosage_form: str
+    common_uses: str = ""
+    important_notes: str = ""
+    information_source: str | None = None
+    information_reviewed: str | None = None
 
 
 @dataclass(frozen=True)
@@ -71,4 +84,3 @@ class RetrievalItem:
 class RetrievalRequest:
     request_id: str
     items: tuple[RetrievalItem, ...]
-

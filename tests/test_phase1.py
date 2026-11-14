@@ -49,6 +49,40 @@ class PhaseOneTests(unittest.TestCase):
             matcher.match(" PARACETAMOL ", "500 MG", "TABLET").status,
             MatchStatus.MATCHED,
         )
+
+    def test_demo_catalog_contains_three_target_medicines_and_references(self) -> None:
+        medicines = self.connection.execute(
+            """
+            SELECT generic_name, strength, dosage_form
+            FROM medicines
+            WHERE generic_name IN ('paracetamol', 'aspirin', 'amoxicillin')
+            """
+        ).fetchall()
+        self.assertEqual(
+            {row["generic_name"] for row in medicines},
+            {"paracetamol", "aspirin", "amoxicillin"},
+        )
+
+        matcher = MedicineMatcher(self.connection)
+        expected = (
+            ("paracetamol", "500 mg", "tablet", "acetaminophen"),
+            ("aspirin", "300 mg", "tablet", "acetylsalicylic acid"),
+            ("amoxicillin", "250 mg", "capsule", "amoxicillin"),
+        )
+        for name, strength, form, alias in expected:
+            with self.subTest(medicine=name):
+                matched = matcher.match(name, strength, form)
+                self.assertEqual(matched.status, MatchStatus.MATCHED)
+                medicine = matched.medicine
+                self.assertIsNotNone(medicine)
+                self.assertEqual(medicine.generic_name, name)
+                self.assertTrue(medicine.common_uses)
+                self.assertTrue(medicine.important_notes)
+                self.assertTrue(medicine.information_source)
+                self.assertEqual(
+                    matcher.match(alias, strength, form).status,
+                    MatchStatus.MATCHED,
+                )
         self.assertEqual(
             matcher.match("Fictional Relief", "500 mg", "tablet").medicine.id,
             1,

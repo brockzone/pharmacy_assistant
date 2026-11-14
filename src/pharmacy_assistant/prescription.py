@@ -9,7 +9,12 @@ import cv2
 import pytesseract
 
 from pharmacy_assistant.matching import MedicineMatcher
-from pharmacy_assistant.models import MatchStatus, Medicine, StorageLocation
+from pharmacy_assistant.models import (
+    MatchStatus,
+    Medicine,
+    MedicineReference,
+    StorageLocation,
+)
 from pharmacy_assistant.repository import MedicineRepository
 
 SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
@@ -105,6 +110,7 @@ class ScannedMedicine:
     location: StorageLocation | None = None
     quantity_available: int | None = None
     review_fields: tuple[str, ...] = ()
+    reference: MedicineReference | None = None
 
 
 @dataclass(frozen=True)
@@ -482,12 +488,18 @@ def _match_candidates(
 ) -> tuple[ScannedMedicine, ...]:
     items: list[ScannedMedicine] = []
     for candidate in parsed.candidates:
+        reference = (
+            repository.find_reference(candidate.name)
+            if candidate.name is not None
+            else None
+        )
         if candidate.name is None:
             items.append(
                 ScannedMedicine(
                     candidate=candidate,
                     database_status="incomplete_requires_review",
                     review_fields=candidate.review_fields,
+                    reference=reference,
                 )
             )
             continue
@@ -510,6 +522,7 @@ def _match_candidates(
                         else "incomplete_requires_review"
                     ),
                     review_fields=tuple(dict.fromkeys((*review_fields, "strength"))),
+                    reference=reference,
                 )
             )
             continue
@@ -519,6 +532,7 @@ def _match_candidates(
                     candidate=candidate,
                     database_status=match.status.value,
                     review_fields=("medicine_match",),
+                    reference=reference,
                 )
             )
             continue
@@ -528,6 +542,7 @@ def _match_candidates(
                     candidate=candidate,
                     database_status=match.status.value,
                     review_fields=("medicine_match",),
+                    reference=reference,
                 )
             )
             continue
@@ -541,6 +556,7 @@ def _match_candidates(
                     database_status="matched_no_inventory",
                     medicine=medicine,
                     review_fields=("inventory",),
+                    reference=reference,
                 )
             )
             continue
@@ -551,6 +567,7 @@ def _match_candidates(
                 medicine=medicine,
                 location=inventory[0].location,
                 quantity_available=inventory[0].quantity,
+                reference=reference,
             )
         )
     return tuple(items)

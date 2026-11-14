@@ -94,6 +94,44 @@ class PhaseTwoTests(unittest.TestCase):
             ("Patient: Jane Doe", "Take after meals"),
         )
 
+    def test_ocr_candidates_for_all_three_target_medicines_match_the_catalog(self) -> None:
+        samples = (
+            ("PARACETAMOL 500 mg tablet", "paracetamol", "500 mg"),
+            ("ASPIRIN 300 mg tablet", "aspirin", "300 mg"),
+            ("AMOXICILLIN 250 mg capsule", "amoxicillin", "250 mg"),
+        )
+        for ocr_text, generic_name, strength in samples:
+            with self.subTest(generic_name=generic_name), patch(
+                "pharmacy_assistant.prescription.pytesseract.image_to_string",
+                return_value=ocr_text,
+            ):
+                result = scan_image(
+                    self.image_path, self.matcher, self.repository
+                )
+                self.assertEqual(len(result.items), 1)
+                item = result.items[0]
+                self.assertEqual(item.database_status, "matched")
+                self.assertEqual(item.medicine.generic_name, generic_name)
+                self.assertEqual(item.medicine.strength, strength)
+                self.assertTrue(item.medicine.common_uses)
+
+    def test_recognized_generic_without_strength_shows_reference_but_requires_review(self) -> None:
+        with patch(
+            "pharmacy_assistant.prescription.pytesseract.image_to_string",
+            return_value="ASPIRIN",
+        ):
+            result = scan_image(
+                self.image_path, self.matcher, self.repository
+            )
+
+        self.assertEqual(len(result.items), 1)
+        item = result.items[0]
+        self.assertEqual(item.database_status, "ambiguous_requires_review")
+        self.assertIsNone(item.medicine)
+        self.assertIsNone(item.location)
+        self.assertEqual(item.reference.generic_name, "aspirin")
+        self.assertIn("bleeding risk", item.reference.important_notes)
+
     def test_noisy_surrounding_punctuation_still_extracts_catalog_name(self) -> None:
         result = parse_prescription_text(
             r"FN Ba | | : if ! i 2 VCH ~5\ Par ACETAMOL | ~ -",
@@ -232,6 +270,14 @@ class PhaseTwoTests(unittest.TestCase):
         self.assertIn("Extracted strength: 500 mg", report)
         self.assertIn("Extracted dosage form: tablet", report)
         self.assertIn("Database match status: matched", report)
+        self.assertIn(
+            "Common uses: Commonly used for mild to moderate pain and fever.",
+            report,
+        )
+        self.assertIn(
+            "Information source: https://medlineplus.gov/druginfo/meds/a681004.html",
+            report,
+        )
         self.assertIn("Storage location: DEMO-A1", report)
         self.assertIn("Inventory quantity: 12", report)
         self.assertIn("no robot request was created or dispatched", report)

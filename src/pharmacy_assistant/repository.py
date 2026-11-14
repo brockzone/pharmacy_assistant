@@ -2,7 +2,22 @@
 
 import sqlite3
 
-from pharmacy_assistant.models import InventoryEntry, Medicine, StorageLocation
+from pharmacy_assistant.models import (
+    InventoryEntry,
+    Medicine,
+    MedicineReference,
+    StorageLocation,
+)
+
+
+def medicine_reference_from_row(row: sqlite3.Row) -> MedicineReference:
+    return MedicineReference(
+        generic_name=row["generic_name"],
+        common_uses=row["common_uses"],
+        important_notes=row["important_notes"],
+        information_source=row["information_source"],
+        information_reviewed=row["information_reviewed"],
+    )
 
 
 def medicine_from_row(row: sqlite3.Row) -> Medicine:
@@ -12,6 +27,10 @@ def medicine_from_row(row: sqlite3.Row) -> Medicine:
         brand_name=row["brand_name"],
         strength=row["strength"],
         dosage_form=row["dosage_form"],
+        common_uses=row["common_uses"] or "",
+        important_notes=row["important_notes"] or "",
+        information_source=row["information_source"],
+        information_reviewed=row["information_reviewed"],
     )
 
 
@@ -32,9 +51,16 @@ class MedicineRepository:
     def find_by_name(self, normalized_name: str) -> tuple[Medicine, ...]:
         rows = self.connection.execute(
             """
-            SELECT DISTINCT m.*
+            SELECT DISTINCT
+                m.*,
+                r.common_uses,
+                r.important_notes,
+                r.information_source,
+                r.information_reviewed
             FROM medicines AS m
             LEFT JOIN medicine_aliases AS a ON a.medicine_id = m.id
+            LEFT JOIN medicine_references AS r
+                ON lower(r.generic_name) = lower(m.generic_name)
             WHERE lower(m.generic_name) = ?
                OR lower(m.brand_name) = ?
                OR lower(a.alias) = ?
@@ -44,12 +70,48 @@ class MedicineRepository:
         ).fetchall()
         return tuple(medicine_from_row(row) for row in rows)
 
+    def find_reference(self, normalized_name: str) -> MedicineReference | None:
+        rows = self.connection.execute(
+            """
+            SELECT DISTINCT
+                r.generic_name,
+                r.common_uses,
+                r.important_notes,
+                r.information_source,
+                r.information_reviewed
+            FROM medicine_references AS r
+            LEFT JOIN medicines AS m
+                ON lower(m.generic_name) = lower(r.generic_name)
+            LEFT JOIN medicine_aliases AS a ON a.medicine_id = m.id
+            WHERE lower(r.generic_name) = lower(?)
+               OR lower(m.brand_name) = lower(?)
+               OR lower(a.alias) = lower(?)
+            """,
+            (normalized_name, normalized_name, normalized_name),
+        ).fetchall()
+        if len(rows) != 1:
+            return None
+        return medicine_reference_from_row(rows[0])
+
     def inventory_for_medicine(self, medicine_id: int) -> tuple[InventoryEntry, ...]:
         rows = self.connection.execute(
             """
-            SELECT m.*, l.id AS location_id, l.code, l.x, l.y, l.yaw, i.quantity
+            SELECT
+                m.*,
+                r.common_uses,
+                r.important_notes,
+                r.information_source,
+                r.information_reviewed,
+                l.id AS location_id,
+                l.code,
+                l.x,
+                l.y,
+                l.yaw,
+                i.quantity
             FROM inventory AS i
             JOIN medicines AS m ON m.id = i.medicine_id
+            LEFT JOIN medicine_references AS r
+                ON lower(r.generic_name) = lower(m.generic_name)
             JOIN storage_locations AS l ON l.id = i.location_id
             WHERE i.medicine_id = ? AND i.quantity > 0
             ORDER BY i.quantity DESC, l.code
@@ -72,4 +134,3 @@ class MedicineRepository:
                 )
             )
         return tuple(entries)
-

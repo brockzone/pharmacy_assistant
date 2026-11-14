@@ -19,6 +19,14 @@ CREATE TABLE IF NOT EXISTS medicine_aliases (
     PRIMARY KEY (alias, medicine_id)
 );
 
+CREATE TABLE IF NOT EXISTS medicine_references (
+    generic_name TEXT PRIMARY KEY COLLATE NOCASE,
+    common_uses TEXT NOT NULL,
+    important_notes TEXT NOT NULL,
+    information_source TEXT NOT NULL,
+    information_reviewed TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS storage_locations (
     id INTEGER PRIMARY KEY,
     code TEXT NOT NULL UNIQUE,
@@ -64,12 +72,17 @@ def seed_demo_data(database_path: str | Path) -> None:
     medicines = (
         ("paracetamol", "Fictional Relief", "500 mg", "tablet", ("acetaminophen",)),
         ("paracetamol", "Fictional Relief", "120 mg/5 mL", "oral suspension", ()),
+        ("aspirin", None, "300 mg", "tablet", ("acetylsalicylic acid",)),
+        ("aspirin", None, "325 mg", "tablet", ("acetylsalicylic acid",)),
         ("amoxicillin", "Fictional Amoxi", "250 mg", "capsule", ()),
+        ("amoxicillin", "Fictional Amoxi", "500 mg", "capsule", ()),
+        ("amoxicillin", "Fictional Amoxi", "250 mg/5 mL", "oral suspension", ()),
     )
     locations = (
         ("DEMO-A1", 1.0, 0.0, 0.0),
         ("DEMO-B2", 2.0, 1.0, 1.57),
         ("DEMO-C3", 3.0, 1.0, 3.14),
+        ("DEMO-D4", 4.0, 1.0, 0.0),
     )
     demo_medicine_ids: dict[tuple[str, str], int] = {}
 
@@ -98,6 +111,48 @@ def seed_demo_data(database_path: str | Path) -> None:
                 ((alias, row["id"]) for alias in aliases),
             )
 
+        references = (
+            (
+                "paracetamol",
+                "Commonly used for mild to moderate pain and fever.",
+                "Check other medicines for paracetamol/acetaminophen to avoid accidental duplication. "
+                "Follow the product label; too much can cause severe liver injury.",
+                "https://medlineplus.gov/druginfo/meds/a681004.html",
+                "2026-11-14",
+            ),
+            (
+                "aspirin",
+                "Commonly used for pain and fever. Low-dose aspirin may be prescribed "
+                "to reduce heart attack or stroke risk in selected people.",
+                "Low-dose cardiovascular prevention is not appropriate for everyone; "
+                "use only when advised by a healthcare professional. Aspirin can increase bleeding risk.",
+                "https://medlineplus.gov/druginfo/meds/a682878.html",
+                "2026-11-14",
+            ),
+            (
+                "amoxicillin",
+                "An antibiotic used to treat certain infections caused by bacteria; "
+                "it does not treat colds, flu, or other viral infections.",
+                "Use only as prescribed and take it exactly as directed. Antibiotic "
+                "selection depends on the infection and the patient.",
+                "https://medlineplus.gov/druginfo/meds/a685001.html",
+                "2026-11-14",
+            ),
+        )
+        connection.executemany(
+            """
+            INSERT INTO medicine_references
+                (generic_name, common_uses, important_notes, information_source, information_reviewed)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(generic_name) DO UPDATE SET
+                common_uses = excluded.common_uses,
+                important_notes = excluded.important_notes,
+                information_source = excluded.information_source,
+                information_reviewed = excluded.information_reviewed
+            """,
+            references,
+        )
+
         connection.executemany(
             """
             INSERT OR IGNORE INTO storage_locations (code, x, y, yaw)
@@ -111,14 +166,21 @@ def seed_demo_data(database_path: str | Path) -> None:
         medicine_location = {
             ("paracetamol", "500 mg"): "DEMO-A1",
             ("paracetamol", "120 mg/5 mL"): "DEMO-B2",
-            ("amoxicillin", "250 mg"): "DEMO-C3",
+            ("aspirin", "300 mg"): "DEMO-C3",
+            ("aspirin", "325 mg"): "DEMO-C3",
+            ("amoxicillin", "250 mg"): "DEMO-D4",
+            ("amoxicillin", "500 mg"): "DEMO-D4",
+            ("amoxicillin", "250 mg/5 mL"): "DEMO-D4",
         }
         location_ids = {row["code"]: row["id"] for row in location_rows}
         for medicine_key, code in medicine_location.items():
+            medicine_id = demo_medicine_ids.get(medicine_key)
+            if medicine_id is None:
+                raise RuntimeError(f"Demo medicine was not available: {medicine_key}")
             connection.execute(
                 """
                 INSERT OR IGNORE INTO inventory (medicine_id, location_id, quantity)
                 VALUES (?, ?, ?)
                 """,
-                (demo_medicine_ids[medicine_key], location_ids[code], 12),
+                (medicine_id, location_ids[code], 12),
             )

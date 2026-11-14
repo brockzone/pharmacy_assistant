@@ -57,6 +57,18 @@ def _parser() -> argparse.ArgumentParser:
         help="optional custom traineddata model name or path (e.g. pharmacy_meds)",
     )
 
+    gui_parser = subparsers.add_parser(
+        "gui", help="open the desktop prescription scanner"
+    )
+    gui_parser.add_argument("--db", required=True, help="SQLite database path")
+    gui_parser.add_argument(
+        "--camera", type=int, default=0, metavar="INDEX", help="webcam index (default: 0)"
+    )
+    gui_parser.add_argument(
+        "--ocr-model",
+        help="optional custom traineddata model name or path (e.g. pharmacy_meds)",
+    )
+
     capture_parser = subparsers.add_parser(
         "capture", help="capture a photograph and enter exact ground-truth label"
     )
@@ -121,6 +133,20 @@ def _print_scan_report(result: "PrescriptionScanResult") -> None:
                 f"{item.medicine.generic_name} {item.medicine.strength} "
                 f"{item.medicine.dosage_form}"
             )
+            if item.medicine.common_uses:
+                print(f"  Common uses: {item.medicine.common_uses}")
+            if item.medicine.important_notes:
+                print(f"  Important note: {item.medicine.important_notes}")
+            if item.medicine.information_source:
+                print(f"  Information source: {item.medicine.information_source}")
+        elif item.reference is not None:
+            print(
+                f"  Generic ingredient (product details unconfirmed): "
+                f"{item.reference.generic_name}"
+            )
+            print(f"  Common uses: {item.reference.common_uses}")
+            print(f"  Important note: {item.reference.important_notes}")
+            print(f"  Information source: {item.reference.information_source}")
         if item.location is not None:
             print(f"  Storage location: {item.location.code}")
         if item.quantity_available is not None:
@@ -218,6 +244,12 @@ def main() -> None:
             source_photo_id=args.source_id,
             training_root=args.training_dir,
         )
+        return
+
+    if args.command == "gui":
+        from pharmacy_assistant.gui import launch_dashboard
+
+        launch_dashboard(args.db, args.camera, args.ocr_model)
         return
 
     with sqlite3.connect(args.db) as connection:

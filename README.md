@@ -16,6 +16,7 @@ requests.
 ```text
 src/pharmacy_assistant/
   cli.py          Initialize, inspect, and scan prescriptions
+  gui.py          Responsive desktop prescription scanner
   database.py     SQLite schema, connection setup, and demo records
   matching.py     Exact normalized-name, strength, and form matching
   models.py       Typed records and retrieval-request result types
@@ -77,11 +78,26 @@ Open a live webcam preview and scan a medicine name from paper:
 PYTHONPATH=src python3 -m pharmacy_assistant.cli scan --db pharmacy.db --camera 0
 ```
 
-Place the paper with the medicine name in view. Press **SPACE** to capture and
-scan the displayed frame. Press **ESC** or **Q** to cancel. Select another
-camera by changing `--camera 0` to the device index (for example, `--camera 1`).
-The webcam is released and preview windows are closed after capture, cancellation,
-or camera errors.
+Open the desktop prescription-scanning dashboard:
+
+```bash
+PYTHONPATH=src python3 -m pharmacy_assistant.cli gui --db pharmacy.db --camera 0
+```
+
+The dashboard uses Python's built-in Tkinter UI and the existing OpenCV,
+Tesseract, and SQLite pipeline. The camera preview remains live in the central
+panel, while the captured enhanced-grayscale OCR input and structured scan
+results are shown separately in the right panel. Capture, Retake, and Clear
+Scan control only the current review session. A camera, OCR, or database error
+is shown in the interface; no inventory or dispensing action is performed.
+
+The optional custom model can be selected with `--ocr-model pharmacy_meds`.
+
+For the CLI camera preview, place the paper with the medicine name in view.
+Press **SPACE** to capture and scan the displayed frame. Press **ESC** or **Q**
+to cancel. Select another camera by changing `--camera 0` to the device index
+(for example, `--camera 1`). The webcam is released and preview windows are
+closed after capture, cancellation, or camera errors.
 
 The scan displays raw OCR text, medicine candidates, extracted strength and
 dosage form when recognized, database match status, verified storage location
@@ -101,15 +117,28 @@ review requirements are unchanged.
 
 The OCR evaluation scaffold and instructions are in
 [training/README.md](training/README.md).
-Place held-out real photographs and matching `.gt.txt` ground-truth files in
-`training/evaluation/`, and record each physical source photo in
-`training/manifest.csv`. Keep photographs, crops, and derived variants from one
-physical source together in the same split. Do not use held-out evaluation
-photos to tune OCR options. The evaluation script and baseline/optional
-experiment comparisons will be added after labeled photos are supplied.
+The capture and evaluation tools are available for collecting verified labels
+and comparing OCR configurations. Keep photographs, crops, and derived
+variants from one physical source together in the same split. Do not use
+held-out evaluation photos to tune OCR options.
 
 No custom OCR options are enabled by default. Evaluation experiments must remain
 opt-in and must not change strict medicine matching or review-only behavior.
+
+The fictional `--demo` catalog includes paracetamol, aspirin, and amoxicillin
+reference entries. A confirmed match displays the generic name, common uses,
+important notes, and the linked MedlinePlus drug information source. These
+summaries are general information only, not a diagnosis or treatment
+recommendation. If the generic name is recognized but strength or dosage form
+is missing or ambiguous, the dashboard may show ingredient-level information
+while clearly marking the product details for verification. Aspirin has
+bleeding risks and should not be started for
+cardiovascular prevention without healthcare-professional advice; antibiotics
+such as amoxicillin are used only for appropriate bacterial infections.
+For an existing local demo database, rerun
+`PYTHONPATH=src python3 -m pharmacy_assistant.cli init --db pharmacy.db --demo`
+to add the new catalog entries and reference table without duplicating seeded
+records.
 
 To save the captured image, selected preprocessed image, and text/configuration
 from each OCR attempt for troubleshooting, pass `--debug-dir`:
