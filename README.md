@@ -1,184 +1,184 @@
-# Pharmacy Assistant — Phase 2
+![Pharmacy Assistant prescription scanner dashboard](assets/pharmacy-assistant-banner.svg)
 
-Phase 1 provides a local SQLite medicine catalog, inventory and storage
-locations, strict medicine matching, location resolution, and structured
-retrieval requests. Phase 2 adds prescription image OCR and conservative
-medicine-candidate matching for human review. It does not communicate with
-ROS 2 or control robot hardware.
+# Pharmacy Assistant
 
-All records and location coordinates created by `demo` are fictional test data.
-No medicine is substituted when identification is missing or ambiguous.
-Prescription OCR results are review-only and never create or dispatch robot
-requests.
+**A review-first prescription scanning desktop app** built with Python, Tkinter,
+OpenCV, Tesseract OCR, and SQLite. Capture a prescription or medicine label,
+review the recognized text, and compare it with a local medicine catalog.
 
-## Project layout
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![OpenCV](https://img.shields.io/badge/Computer%20Vision-OpenCV-5C3EE8?logo=opencv&logoColor=white)](https://opencv.org/)
+[![OCR](https://img.shields.io/badge/OCR-Tesseract-2F6F9F)](https://github.com/tesseract-ocr/tesseract)
+[![Database](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 
-```text
-src/pharmacy_assistant/
-  cli.py          Initialize, inspect, and scan prescriptions
-  gui.py          Responsive desktop prescription scanner
-  database.py     SQLite schema, connection setup, and demo records
-  matching.py     Exact normalized-name, strength, and form matching
-  models.py       Typed records and retrieval-request result types
-  repository.py  Catalog and inventory queries
-  resolver.py    Medicine-to-storage-location resolution
-  prescription.py Image validation, preprocessing, OCR, and candidate matching
-tests/
-  test_phase1.py  Automated Phase 1 tests
-  test_phase2.py  Prescription scanning and OCR tests
-training/
-  README.md       OCR evaluation data and labeling instructions
-  manifest.csv   Source-photo provenance and split manifest
-  evaluation/    Held-out real photographs and matching .gt.txt labels
+> **Safety notice:** This project is a software demonstration, not a medical
+> device or source of treatment advice. OCR can be wrong. Always verify the
+> medicine and its details with an appropriate healthcare professional. The
+> included demo catalog, quantities, and storage locations are fictional.
+> Scanning does not dispense medicine or change inventory.
+
+## What it does
+
+- Shows a live webcam preview and keeps the captured, processed image visible
+  separately while OCR runs.
+- Uses the existing OpenCV preprocessing and Tesseract OCR pipeline.
+- Matches recognized names, strengths, and dosage forms against a local SQLite
+  catalog; unclear or incomplete details are marked for review.
+- Shows generic names and sourced, general-use information for paracetamol,
+  aspirin, and amoxicillin when available in the demo database.
+- Provides a CLI as well as the desktop scanner.
+
+## Scan workflow
+
+```mermaid
+flowchart LR
+    A[Live camera preview] -->|Capture frame| B[Captured image]
+    B --> C[OpenCV preprocessing]
+    C --> D[Tesseract OCR]
+    D --> E[SQLite catalog match]
+    E --> F[Operator review]
+    B -. remains visible .-> G[Grayscale side panel]
 ```
 
-## Install
+The live preview resumes independently; the grayscale capture remains visible
+until replaced or cleared. OCR results are suggestions for review, not a
+confirmed prescription.
 
-Python 3.10 or newer is required. Install Python dependencies in a virtual
-environment:
+## Quick start
+
+### Requirements
+
+- Python 3.10 or newer
+- Tesseract OCR installed and available on `PATH`
+- A desktop session for the Tkinter interface and webcam preview
+- A webcam for live scanning; image-file scanning does not require one
+
+On Debian/Ubuntu, install the system packages:
 
 ```bash
-cd ~/pharmacy_assistant
+sudo apt-get update
+sudo apt-get install python3-tk tesseract-ocr
+```
+
+Create an environment and install the app:
+
+```bash
+cd /path/to/pharmacy_assistant
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .
 ```
 
-The Python OCR dependency uses the separate Tesseract executable. On Debian or
-Ubuntu, install it with:
-
-```bash
-sudo apt-get update
-sudo apt-get install tesseract-ocr
-```
-
-## Run
-
-Initialize a database with fictional demo data:
+Create a local database with fictional demo medicines:
 
 ```bash
 pharmacy-assistant init --db pharmacy.db --demo
 ```
 
-Scan an image file (JPG, JPEG, or PNG):
+Launch the scanner:
 
 ```bash
-pharmacy-assistant scan --image /path/to/prescription.png --db pharmacy.db
+pharmacy-assistant gui --db pharmacy.db --camera 0
 ```
 
-Optionally pass `--ocr-model` to use a fine-tuned model (e.g. `pharmacy_meds`):
+In the dashboard, use **Capture image** to scan the current frame. The captured
+grayscale OCR image and results remain in the right panel while the live preview
+continues. Use **Retake** or **Clear scan** to remove the current capture.
+
+If the `pharmacy-assistant` command is not on your `PATH`, run the module from
+the repository root instead:
 
 ```bash
-pharmacy-assistant scan --image /path/to/prescription.png --db pharmacy.db --ocr-model pharmacy_meds
+PYTHONPATH=src .venv/bin/python -m pharmacy_assistant.cli gui \
+  --db pharmacy.db --camera 0
 ```
 
-Open a live webcam preview and scan a medicine name from paper:
+## Other ways to scan
+
+Scan a JPG, JPEG, or PNG file:
 
 ```bash
-PYTHONPATH=src python3 -m pharmacy_assistant.cli scan --db pharmacy.db --camera 0
+pharmacy-assistant scan --image /path/to/label.png --db pharmacy.db
 ```
 
-Open the desktop prescription-scanning dashboard:
+Use the command-line webcam preview:
 
 ```bash
-PYTHONPATH=src python3 -m pharmacy_assistant.cli gui --db pharmacy.db --camera 0
+pharmacy-assistant scan --camera 0 --db pharmacy.db
 ```
 
-The dashboard uses Python's built-in Tkinter UI and the existing OpenCV,
-Tesseract, and SQLite pipeline. The camera preview remains live in the central
-panel, while the captured enhanced-grayscale OCR input and structured scan
-results are shown separately in the right panel. Capture, Retake, and Clear
-Scan control only the current review session. A camera, OCR, or database error
-is shown in the interface; no inventory or dispensing action is performed.
+The CLI camera preview uses **Space** to capture and **Esc** or **Q** to cancel.
+Choose a different camera by changing the index, for example `--camera 1`.
 
-The optional custom model can be selected with `--ocr-model pharmacy_meds`.
-
-For the CLI camera preview, place the paper with the medicine name in view.
-Press **SPACE** to capture and scan the displayed frame. Press **ESC** or **Q**
-to cancel. Select another camera by changing `--camera 0` to the device index
-(for example, `--camera 1`). The webcam is released and preview windows are
-closed after capture, cancellation, or camera errors.
-
-The scan displays raw OCR text, medicine candidates, extracted strength and
-dosage form when recognized, database match status, verified storage location
-and inventory quantity when available, and fields requiring human review.
-Ambiguous or incomplete candidates require review; a missing or ambiguous
-database match is not substituted with another medicine. Scanning never creates
-a retrieval request, dispenses medication, or changes inventory.
-
-OCR tries the original grayscale image plus enhanced grayscale, Otsu, and
-adaptive-threshold images with Tesseract page segmentation modes (6, 7, and 11),
-then ranks the results using legibility and exact catalog evidence. The
-displayed selection score is a ranking score,
-not a probability or guarantee of OCR correctness. Exact matching and manual
-review requirements are unchanged.
-
-### Printed medicine-name OCR evaluation
-
-The OCR evaluation scaffold and instructions are in
-[training/README.md](training/README.md).
-The capture and evaluation tools are available for collecting verified labels
-and comparing OCR configurations. Keep photographs, crops, and derived
-variants from one physical source together in the same split. Do not use
-held-out evaluation photos to tune OCR options.
-
-No custom OCR options are enabled by default. Evaluation experiments must remain
-opt-in and must not change strict medicine matching or review-only behavior.
-
-The fictional `--demo` catalog includes paracetamol, aspirin, and amoxicillin
-reference entries. A confirmed match displays the generic name, common uses,
-important notes, and the linked MedlinePlus drug information source. These
-summaries are general information only, not a diagnosis or treatment
-recommendation. If the generic name is recognized but strength or dosage form
-is missing or ambiguous, the dashboard may show ingredient-level information
-while clearly marking the product details for verification. Aspirin has
-bleeding risks and should not be started for
-cardiovascular prevention without healthcare-professional advice; antibiotics
-such as amoxicillin are used only for appropriate bacterial infections.
-For an existing local demo database, rerun
-`PYTHONPATH=src python3 -m pharmacy_assistant.cli init --db pharmacy.db --demo`
-to add the new catalog entries and reference table without duplicating seeded
-records.
-
-To save the captured image, selected preprocessed image, and text/configuration
-from each OCR attempt for troubleshooting, pass `--debug-dir`:
+Optionally select a custom Tesseract model:
 
 ```bash
-PYTHONPATH=src python3 -m pharmacy_assistant.cli scan \
-  --db pharmacy.db --camera 0 --debug-dir ./ocr-debug
+pharmacy-assistant scan --image /path/to/label.png \
+  --db pharmacy.db --ocr-model pharmacy_meds
 ```
 
-The same option works with `--image`. Without `--debug-dir`, no debug images or
-attempt logs are written.
+Save diagnostic images and OCR attempts for troubleshooting:
 
-### Webcam troubleshooting
+```bash
+pharmacy-assistant scan --image /path/to/label.png \
+  --db pharmacy.db --debug-dir ./ocr-debug
+```
 
-- If the camera cannot be opened, check that it is connected, that no other
-  application is using it, and try another camera index (`--camera 1`).
-- On Linux, check that the user has permission to access the camera device.
-- If the preview cannot open in a desktop session, make sure OpenCV's GUI
-  support and a graphical display session are available. A headless session
-  cannot show an interactive preview; use `--image` instead.
-- If OCR returns no readable text, improve lighting, hold the paper steady,
-  keep the medicine name in focus, fill more of the frame with the text, and
-  retake the image. Avoid shadows and glare. Handwriting and
-  low-quality images may require manual review.
-- If Tesseract is unavailable, install the system Tesseract executable:
+## Results and review
 
-  ```bash
-  sudo apt-get update
-  sudo apt-get install tesseract-ocr
-  ```
+The scanner presents OCR text, candidate medicine details, and database match
+status. A confirmed match may also include the catalog’s generic name, brand,
+strength, dosage form, demo location, and common-use reference. If only a
+generic ingredient is recognized, ingredient-level information may be shown,
+but the product remains marked for verification. The displayed OCR selection
+score is a ranking value, not a probability of correctness.
 
-## Test
+The demo data includes general-use notes and links to [MedlinePlus drug
+information](https://medlineplus.gov/druginformation.html). These short
+summaries are not diagnosis, dosing instructions, or a recommendation to start,
+stop, or change a medicine. In particular, aspirin may increase bleeding risk,
+and antibiotics such as amoxicillin are used only for appropriate bacterial
+infections.
 
-Run Phase 1 and Phase 2 unit tests from the project root:
+## OCR data and evaluation
+
+See [training/README.md](training/README.md) for image-labeling guidance and
+dataset split rules. The capture helper records an image, exact operator-
+provided transcription, and a manifest entry:
+
+```bash
+pharmacy-assistant capture --camera 0 --split test
+```
+
+Evaluation tools and experimental OCR options are separate from the default
+scanner behavior. Do not tune OCR using held-out test images.
+
+## Development
+
+Run the test suite:
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-The schema enables SQLite foreign-key enforcement. Inventory quantities cannot
-be negative, and a medicine must be matched by name (generic, brand, or alias);
-provided strength and dosage form must also match exactly after normalization.
-A match with multiple catalog records is marked ambiguous for operator review.
+Initialize an empty database instead of the fictional demo catalog:
+
+```bash
+pharmacy-assistant init --db pharmacy.db
+```
+
+The database schema and matching rules are in `src/pharmacy_assistant/`.
+Medicine-name, strength, and dosage-form matching is conservative; ambiguous
+matches require human review rather than substitution.
+
+## Troubleshooting
+
+- **Camera unavailable:** Check device permissions, close other camera apps, and
+  try another index such as `--camera 1`.
+- **No desktop preview:** Run from a desktop session with Tkinter available.
+  Headless environments can use `--image` instead.
+- **Tesseract unavailable:** Install `tesseract-ocr` and confirm `tesseract` is
+  on `PATH`.
+- **Poor OCR:** Improve focus and lighting, reduce glare, and keep the printed
+  medicine name in frame. Handwriting and low-quality images may need manual
+  review.

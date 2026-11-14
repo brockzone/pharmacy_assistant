@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" fill="none">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1200" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10213D"/>
+      <stop offset="1" stop-color="#193B66"/>
+    </linearGradient>
+    <linearGradient id="scan" x1="685" y1="101" x2="1063" y2="287" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#40D6C1"/>
+      <stop offset="1" stop-color="#5F8CFF"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="817" y1="28" x2="1098" y2="331" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#27C7B5" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#4B73E8" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="642" y="60" width="493" height="288" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="14"/>
+      <feGaussianBlur stdDeviation="12"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix values="0 0 0 0 0.02 0 0 0 0 0.07 0 0 0 0 0.17 0 0 0 .28 0"/>
+      <feBlend in2="BackgroundImageFix" result="effect1_dropShadow"/>
+      <feBlend in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="360" rx="24" fill="url(#background)"/>
+  <circle cx="990" cy="177" r="205" fill="url(#glow)"/>
+  <circle cx="1115" cy="34" r="2" fill="#70E3D3" fill-opacity=".72"/>
+  <circle cx="586" cy="305" r="2" fill="#91B4FF" fill-opacity=".72"/>
+  <circle cx="1104" cy="319" r="1.5" fill="#70E3D3" fill-opacity=".65"/>
+  <path d="M0 300C176 254 320 347 520 293" stroke="#FFFFFF" stroke-opacity=".045"/>
+  <path d="M0 318C192 272 330 364 544 308" stroke="#FFFFFF" stroke-opacity=".035"/>
+
+  <g>
+    <rect x="64" y="52" width="205" height="28" rx="14" fill="#FFFFFF" fill-opacity=".08" stroke="#FFFFFF" stroke-opacity=".13"/>
+    <circle cx="81" cy="66" r="4" fill="#45D6C1"/>
+    <text x="94" y="70" fill="#B8D5E5" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11" font-weight="700" letter-spacing="1.5">REVIEW-FIRST SCANNING</text>
+    <text x="62" y="143" fill="#FFFFFF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="42" font-weight="700" letter-spacing="-1.1">Pharmacy Assistant</text>
+    <text x="64" y="181" fill="#C5D4E7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17">Prescription OCR, thoughtfully designed.</text>
+    <text x="64" y="211" fill="#9FB4D0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13">Capture a label. Review the text. Match against your local catalog.</text>
+
+    <g transform="translate(64 250)">
+      <rect width="130" height="34" rx="17" fill="#FFFFFF" fill-opacity=".08" stroke="#FFFFFF" stroke-opacity=".12"/>
+      <circle cx="18" cy="17" r="5" fill="#49D8C2"/>
+      <text x="31" y="21" fill="#E4EDF7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">OpenCV</text>
+      <rect x="140" width="136" height="34" rx="17" fill="#FFFFFF" fill-opacity=".08" stroke="#FFFFFF" stroke-opacity=".12"/>
+      <circle cx="158" cy="17" r="5" fill="#84A9FF"/>
+      <text x="171" y="21" fill="#E4EDF7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Tesseract OCR</text>
+      <rect x="286" width="106" height="34" rx="17" fill="#FFFFFF" fill-opacity=".08" stroke="#FFFFFF" stroke-opacity=".12"/>
+      <circle cx="304" cy="17" r="5" fill="#C4A5FF"/>
+      <text x="317" y="21" fill="#E4EDF7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">SQLite</text>
+    </g>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="683" y="73" width="443" height="248" rx="18" fill="#F7FAFD"/>
+    <path d="M701 73H1108C1117.94 73 1126 81.0589 1126 91V111H683V91C683 81.0589 691.059 73 701 73Z" fill="#FFFFFF"/>
+    <circle cx="703" cy="92" r="4" fill="#F0A5A1"/>
+    <circle cx="718" cy="92" r="4" fill="#F2CC78"/>
+    <circle cx="733" cy="92" r="4" fill="#67C9A1"/>
+    <text x="764" y="96" fill="#667A91" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9" font-weight="700" letter-spacing="1">PRESCRIPTION SCANNER</text>
+
+    <rect x="703" y="128" width="244" height="151" rx="10" fill="#10213D"/>
+    <rect x="713" y="138" width="224" height="131" rx="6" fill="#D9E5E5"/>
+    <path d="M731 161H916" stroke="#BAC9CA" stroke-width="1"/>
+    <path d="M731 245H916" stroke="#BAC9CA" stroke-width="1"/>
+    <rect x="747" y="172" width="152" height="60" rx="6" fill="#FFFFFF" fill-opacity=".9"/>
+    <text x="761" y="196" fill="#334A60" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="700">PARACETAMOL</text>
+    <text x="761" y="216" fill="#526B82" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11">500 mg  ·  tablet</text>
+    <path d="M737 154V145H746M904 145H913V154M737 253V262H746M904 262H913V253" stroke="url(#scan)" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="723" cy="149" r="3" fill="#43D3BE"/>
+    <text x="733" y="152" fill="#356274" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="8" font-weight="700" letter-spacing=".8">CAPTURED IMAGE</text>
+
+    <rect x="963" y="128" width="143" height="151" rx="10" fill="#FFFFFF" stroke="#E4EAF0"/>
+    <text x="979" y="151" fill="#7B8DA1" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="8" font-weight="700" letter-spacing=".8">CATALOG MATCH</text>
+    <circle cx="986" cy="176" r="8" fill="#E4F6EC"/>
+    <path d="M982.5 176L985 178.5L989.5 173.5" stroke="#19945A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="1001" y="179" fill="#176A49" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10" font-weight="700">REVIEW RESULT</text>
+    <path d="M979 195H1090" stroke="#E8EDF2"/>
+    <text x="979" y="215" fill="#20354D" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10" font-weight="700">Generic name</text>
+    <text x="979" y="231" fill="#63768A" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Paracetamol</text>
+    <text x="979" y="253" fill="#20354D" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10" font-weight="700">OCR + SQLite</text>
+    <text x="979" y="268" fill="#63768A" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">Human review stays in control</text>
+  </g>
+</svg>
