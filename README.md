@@ -3,8 +3,10 @@
 # Pharmacy Assistant
 
 **A review-first prescription scanning desktop app** built with Python, Tkinter,
-OpenCV, Tesseract OCR, and SQLite. Capture a prescription or medicine label,
-review the recognized text, and compare it with a local medicine catalog.
+OpenCV, Tesseract OCR, and SQLite. It brings computer vision, OCR, desktop UX,
+and conservative data matching together in one offline-first project. Capture
+a prescription or medicine label, review the recognized text, and compare it
+with a local medicine catalog.
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![OpenCV](https://img.shields.io/badge/Computer%20Vision-OpenCV-5C3EE8?logo=opencv&logoColor=white)](https://opencv.org/)
@@ -35,6 +37,30 @@ review the recognized text, and compare it with a local medicine catalog.
 The live preview resumes independently; the grayscale capture remains visible
 until replaced or cleared. OCR results are suggestions for review, not a
 confirmed prescription.
+
+## Engineering highlights
+
+- **Responsive desktop workflow:** camera capture and OCR run outside Tkinter's
+  UI thread; queues deliver frames and results back to the interface.
+- **Race-safe scan state:** live and captured images are independent, and
+  generation IDs prevent an old background scan from replacing a newer or
+  cleared result.
+- **Conservative matching:** normalized names are narrowed by exact strength
+  and dosage form; ambiguous candidates are surfaced instead of silently
+  choosing a medicine.
+- **Offline-first data:** SQLite stores the local catalog and sourced reference
+  notes; demo data can be initialized locally without a hosted service.
+- **Tested behavior:** all 37 current unit tests pass, covering the CLI,
+  database, matching, OCR workflow, capture tooling, and scanner state.
+
+### Where to look
+
+| Area | Implementation |
+| --- | --- |
+| Desktop scanner and async state | [`gui.py`](src/pharmacy_assistant/gui.py) |
+| Image preprocessing and OCR | [`prescription.py`](src/pharmacy_assistant/prescription.py) |
+| Medicine matching and SQLite | [`matching.py`](src/pharmacy_assistant/matching.py), [`database.py`](src/pharmacy_assistant/database.py) |
+| Automated tests | [`tests/`](tests/) |
 
 ## Quick start
 
@@ -147,10 +173,10 @@ scanner behavior. Do not tune OCR using held-out test images.
 
 ## Development
 
-Run the test suite:
+Run the test suite from the repository root:
 
 ```bash
-python -m unittest discover -s tests -v
+PYTHONPATH=src python -m unittest discover -s tests -v
 ```
 
 Initialize an empty database instead of the fictional demo catalog:
