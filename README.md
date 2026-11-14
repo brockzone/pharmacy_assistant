@@ -30,15 +30,7 @@ review the recognized text, and compare it with a local medicine catalog.
 
 ## Scan workflow
 
-```mermaid
-flowchart LR
-    A[Live camera preview] -->|Capture frame| B[Captured image]
-    B --> C[OpenCV preprocessing]
-    C --> D[Tesseract OCR]
-    D --> E[SQLite catalog match]
-    E --> F[Operator review]
-    B -. remains visible .-> G[Grayscale side panel]
-```
+![Four-step review-first scan workflow: capture, process, extract, and review](assets/scan-workflow.svg)
 
 The live preview resumes independently; the grayscale capture remains visible
 until replaced or cleared. OCR results are suggestions for review, not a
